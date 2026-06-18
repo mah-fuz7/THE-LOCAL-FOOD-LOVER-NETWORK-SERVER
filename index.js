@@ -1,0 +1,126 @@
+const express=require('express');
+const app=express();
+const cors=require("cors");
+require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+const port=process.env.PORT || 3000;
+
+// middleware
+app.use(cors());
+app.use(express.json())
+
+// mongoDB
+// mongoDB user:TLFLN-SERVER
+// mongoDB User Pass: hnUk0UOIhsn5ANxb
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.due0kmg.mongodb.net/?appName=Cluster0`;
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+app.get('/',(req,res) =>{
+    res.send("server is running")
+})
+
+async function run() {
+  try {
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
+
+// create a database collection
+const database=client.db("reviewsdb");
+const reviewsColl=database.collection("reviews");
+const favoriteColl=database.collection("favorite")
+
+
+// --------Review api------
+
+// get all review api
+app.get('/reviews',async(req,res) =>{
+    const result=await reviewsColl.find().toArray();
+    res.send({
+        success:true,
+        data:result,
+    });
+});
+
+// post review api(add review)
+app.post("/reviews",async(req,res) =>{
+    const newReviews=req.body;
+    const result=await reviewsColl.insertOne(newReviews);
+    res.send(result);
+})
+
+// get latest reviews api
+app.get('/latestreviews',async(req,res) =>{
+    sortField={createdAt:-1}
+    const limitNum=5;
+    const cursor=reviewsColl.find().sort(sortField).limit(limitNum);
+    const result=await cursor.toArray()
+    res.send({
+        success:true,
+        data:result
+    })
+})
+
+// get specific data by id for reviewDetails page
+app.get('/reviews/:id',async(req,res) =>{
+    const id=req.params.id;
+    const query ={
+        _id:new ObjectId(id)
+    };
+    const result=await reviewsColl.findOne(query)
+    res.send({
+        success:true,
+        data:result
+    })
+})
+
+// get reviews who sign in
+app.get("/users/reviews",async(req,res) =>{
+    const email=req.query.email;
+    const query={}
+    if(email){
+        query.reviewerEmail=email
+    }
+    const result=await reviewsColl.find(query).toArray();
+    res.send({
+        success:true,
+        data:result
+    });
+})
+
+// favorite review api
+// get all favorite review
+app.get("/favorite",async(req,res) =>{
+    const result=await favoriteColl.find().toArray();
+    res.send({
+        success:true,
+        data:result
+    })
+})
+
+// post the review and store in favorite database
+
+
+
+
+
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
+  }
+}
+app.listen(port, ()=>{
+    console.log(`app listening on port ${port}`)
+})
+run().catch(console.dir);
+
