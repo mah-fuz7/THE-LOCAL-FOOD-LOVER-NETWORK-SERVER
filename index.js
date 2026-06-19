@@ -42,11 +42,25 @@ const favoriteColl=database.collection("favorite")
 
 // get all review api
 app.get('/reviews',async(req,res) =>{
-    const result=await reviewsColl.find().toArray();
-    res.send({
+    const searchQuery=req.query.search || "";
+    const query ={
+       name:{
+         $regex:searchQuery,
+        $options:"i",
+       },
+    };
+    try{
+    const result=await reviewsColl.find(query).sort({createdAt:-1}).toArray();
+     res.send({
         success:true,
         data:result,
     });
+    }catch(error){
+console.error("Error fetching reviews",error)
+res.status(500).send({message:"Error fetching reviews"})
+    }
+
+   
 });
 
 // post review api(add review)
