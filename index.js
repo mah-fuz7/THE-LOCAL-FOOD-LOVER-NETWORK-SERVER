@@ -41,20 +41,23 @@ const favoriteColl=database.collection("favorite")
 // --------Review api------
 
 // get all review api
-app.get('/reviews',async(req,res) =>{
-    const searchQuery=req.query.search || "";
-    const query ={
-       name:{
-         $regex:searchQuery,
-        $options:"i",
-       },
-    };
-    try{
-    const result=await reviewsColl.find(query).sort({createdAt:-1}).toArray();
-     res.send({
-        success:true,
-        data:result,
-    });
+app.get('/search',async(req,res) =>{
+try{ 
+    const reviews=req.query.reviews || "";
+  
+    const query={}
+    // search by name
+    if(reviews){
+        query.foodName={
+            $regex:reviews,
+            $options:"i"
+
+        };
+        
+    }
+    
+   const result=await reviewsColl.find(query).sort({createdAt:-1}).toArray()
+   res.send(result)
     }catch(error){
 console.error("Error fetching reviews",error)
 res.status(500).send({message:"Error fetching reviews"})
