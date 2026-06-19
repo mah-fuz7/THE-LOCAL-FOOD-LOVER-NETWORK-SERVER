@@ -95,17 +95,100 @@ app.get("/users/reviews",async(req,res) =>{
     });
 })
 
+// Edit the review api
+app.patch('/reviews/:id',async(req,res) =>{
+    const id=req.params.id;
+    const updateData=req.body;
+    const result=await reviewsColl.updateOne(
+        {
+            _id:new ObjectId(id)
+        },
+        {
+            $set:updateData,
+        },
+    )
+            res.send(result)
+
+})
+// Delete the review api
+app.delete("/reviews/:id" ,async(req,res)=>{
+    const id=req.params.id;
+    const result=await reviewsColl.deleteOne({
+        _id:new ObjectId(id),
+    })
+    res.send({
+        success:true,
+        data:result
+    })
+})
 // favorite review api
+
+// favorite review post api
+app.post('/favorite',async(req,res)=>{
+    const favorite=req.body;
+    favorite.reviewId=new ObjectId(favorite.reviewId)
+    const exists=await favoriteColl.findOne({
+        reviewId:favorite.reviewId,
+        userEmail:favorite.userEmail,
+    })
+    if(exists){
+        return res.send({
+            success:false,
+            message:'Already in favorite'
+        })
+    }
+    const result=await favoriteColl.insertOne(favorite)
+    res.send({
+        success:true,
+        result
+    });
+});
+
+
+
+
+
+
+
 // get all favorite review
 app.get("/favorite",async(req,res) =>{
-    const result=await favoriteColl.find().toArray();
+    const email=req.query.email;
+    const result=await favoriteColl
+    .aggregate(
+        [
+            {
+                $match:{userEmail:email}
+            },
+            {
+                $lookup:{
+                    from:"reviews",
+                    localField:"reviewId",
+                    foreignField:"_id",
+                    as:"reviewData"
+                },
+            },
+            {
+                $unwind:"$reviewData"
+            }
+        ]
+    ).toArray()
     res.send({
         success:true,
         data:result
     })
 })
 
-// post the review and store in favorite database
+// Delete favorite review api
+app.delete('/favorite/:id',async(req,res)=>{
+    const id=req.params.id;
+    const result=await favoriteColl.deleteOne({
+        _id:new ObjectId(id)
+    })
+    res.send({
+        success:true,
+        data:result
+    })
+})
 
 
 
