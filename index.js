@@ -75,7 +75,7 @@ app.post("/reviews",async(req,res) =>{
 
 // get latest reviews api
 app.get('/latestreviews',async(req,res) =>{
-    sortField={createdAt:-1}
+    sortField={rating:-1}
     const limitNum=5;
     const cursor=reviewsColl.find().sort(sortField).limit(limitNum);
     const result=await cursor.toArray()
