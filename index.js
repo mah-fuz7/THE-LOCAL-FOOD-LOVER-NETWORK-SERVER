@@ -2,7 +2,6 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 
-// const admin = require("firebase-admin");
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 
@@ -16,10 +15,6 @@ app.use(cors());
 app.use(express.json());
 
 // Firebase
-// Firebase Admin
-// const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString(
-//   "utf8",
-// );
 
 const serviceAccount = require("./TLFLN-service-key.json");
 
@@ -134,7 +129,7 @@ async function run() {
     });
 
     // get reviews who sign in
-    app.get("/users/reviews", async (req, res) => {
+    app.get("/users/reviews",verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
@@ -185,7 +180,7 @@ async function run() {
       if (exists) {
         return res.send({
           success: false,
-          message: "Already in favorite",
+          message: " Reviews Already in favorite",
         });
       }
       const result = await favoriteColl.insertOne(favorite);
@@ -196,7 +191,7 @@ async function run() {
     });
 
     // get all favorite review
-    app.get("/favorite", async (req, res) => {
+    app.get("/favorite",verifyToken, async (req, res) => {
       const email = req.query.email;
       const result = await favoriteColl
         .aggregate([
