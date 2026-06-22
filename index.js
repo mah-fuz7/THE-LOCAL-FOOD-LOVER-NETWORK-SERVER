@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Firebase
 
-const serviceAccount = require("./TLFLN-service-key.json");
+const serviceAccount =JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf8"));
 
 initializeApp({
   credential: cert(serviceAccount),
