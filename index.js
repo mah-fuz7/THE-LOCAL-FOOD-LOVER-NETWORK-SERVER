@@ -105,7 +105,7 @@ async function run() {
 
     // get latest reviews api
     app.get("/latestreviews", async (req, res) => {
-      sortField = { rating: -1 };
+      const sortField = { rating: -1 };
       const limitNum = 5;
       const cursor = reviewsColl.find().sort(sortField).limit(limitNum);
       const result = await cursor.toArray();
@@ -239,7 +239,10 @@ async function run() {
     // await client.close();
   }
 }
-app.listen(port, () => {
-  console.log(`app listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`app listening on port ${port}`);
+// });
 run().catch(console.dir);
+module.exports = app;
+
+
